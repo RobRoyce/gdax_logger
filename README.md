@@ -11,6 +11,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ## Getting Started
 I am working on pip support. In the mean time, you can simply download or clone this repo and run `gdax_ticker_logger.py`.
 
+Along with this repo, you might need to install additional dependencies. I recommend using the `Anaconda3` library [which you can find here](https://www.anaconda.com/download/), which contains many of the packages used here. You should also install `websocket-client`
+
 If you would like the script to run in the background or on a server, I suggest running the following bash command:
 ```
 nohup python3 gdax_ticker_logger.py >> stdout.log &
