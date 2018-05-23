@@ -9,29 +9,41 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ## Getting Started
-I am working on pip support. In the mean time, you can simply download or clone this repo and run `gdax_ticker_logger.py`.
+Simply download or clone this repo and run `logger.py`.
 
-Along with this repo, you might need to install additional dependencies. I recommend using the `Anaconda3` library [which you can find here](https://www.anaconda.com/download/), which contains many of the packages used here. You should also install `websocket-client`
+You might also need to install additional dependencies. I recommend using the `Anaconda3` library [which you can find here](https://www.anaconda.com/download/). It contains many of the packages required to run the logger. You should also install `websocket-client`
 
 If you would like the script to run in the background or on a server, I suggest running the following bash command:
 ```
-nohup python3 gdax_ticker_logger.py >> stdout.log &
+nohup python3 logger.py >> stdout.log &
 ```
 
 Otherwise you can run it in the foreground:
 ```
-python3 gdax_ticker_logger.py
+python3 logger.py
 ```
-### Ticker Logger
-The ticker logger retrieves updates directly from GDAX over a websocket connection. Each update contains a JSON message that is deserialized and stored in a CSV. A new CSV is generated at the beginning of each day (12:00a GDAX Server Time).
 
-### CSV Utility
-Once you've retrieved log data and want to start using it, you can take advantage of the csv_utility.py script. This script will separate the various crypto products into their own CSV's for further analysis. It also produces a utility log that displays potentially important information regarding the data that was retrieved.
+# FAQ
+### What is it?
+gdax-logger is a script that allows you to establish a direct connection to GDAX and download all of the data relating to a particular cryptocurrency.
 
-I will continue to work on this portion of the gdax-logger project in the future.
+Once data is retrieved via websocket, the `LoggerHandler` parses the data and stores it into two SQLite3 databases (one for the Ticker, one for the OrderBook's).
 
-### TODO
-- Add order book logging
-- Add level 2 logging
-- Improve the CSV utility with relevant statistic analysis
-- Improve the documentation
+For more detailed information on terms like Ticker, OrderBook, and websocket, please view the [GDAX API Website](https://docs.gdax.com).
+
+### How is data stored?
+The Ticker is a simple row of data, and hence requires no special handling. Once Ticker data is received, it is writ directly to database.
+
+On the other hand, the OrderBook is complex. It represents _all_ of the live transactions on GDAX at any given moment. Special handling is required to guarantee integrity of the data. We utilize a segment tree to store and query volume. Special locking is implemented to guarantee updates do not disturb existing queries that have not finished yet. A background (daemon) thread is established at startup and continues to query all existing OrderBook's at approximately 1 second intervals.
+
+### Can I choose which symbols (products) I want to log?
+Yes. But this currently requires that you manually go through the code and change them. By default, the logger will pull and save 'BTC-USD', 'ETH-USD', 'LTC-USD', and 'BCH-USD'. I will make this process much easier in future versions.
+
+# Slack support!
+I've incorperated Slack messaging into the logger. If you'd like to receive updates about the logger's progress via slack, now you can! Simply change the following variables in `LoggerHandler.py`:
+    -`self.__post_to_slack = True`
+    -`self.__slack_url = 'www.your.slack.api.url/here'`
+Once enabled, any error regarding the database is automatically sent to your personal slack channel.
+[See more here about Slack integration](https://get.slack.help/hc/en-us/articles/215770388-Create-and-regenerate-API-tokens) 
+
+### More to come...
